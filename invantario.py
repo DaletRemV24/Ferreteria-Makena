@@ -34,7 +34,7 @@ def limpiar():
     print("\n" * 30)
     
 def pausa():
-    input("\nPresione ENTER para continuar...")
+    input("\nPresione ENTER para volver al menú...")
     
 def registrar_producto():
     limpiar()
@@ -135,49 +135,16 @@ def auditar_inventario():
     print("{:<10}{:<20}{:>10}{:>10}{:>12}{:>15}".format("Código", "Producto", "Stock", "Mínimo", "Comprar", "Estado"))
     print("-" * 80)
     for producto in inventario:
-        codigo = producto[0]
-        nombre = producto[1]
-        stock = producto[3]
-        minimo = producto[4]
-        if stock < 0:
-            estado = "ERROR"
-            comprar = 0
-        elif minimo <= 0:
-            estado = "INVÁLIDO"
-            comprar = 0
-        elif stock < minimo:
-            estado = "CRÍTICO"
-            comprar = minimo - stock
-            total_reponer += comprar
+        comprar = producto[4] - producto[3] if producto[3] < producto[4] else 0
+        estado = "CRÍTICO" if producto[3] < producto[4] else "OK"
+        if estado == "CRÍTICO":
             productos_criticos += 1
-        else:
-            estado = "OK"
-            comprar = 0
-        print("{:<10}{:<20}{:>10}{:>10}{:>12}{:>15}".format(codigo, nombre, stock, minimo, comprar, estado))
-        
+            total_reponer += comprar
+        print("{:<10}{:<20}{:>10}{:>10}{:>12}{:>15}".format(producto[0], producto[1], producto[3], producto[4], comprar, estado))
+   
     print("-" * 80)
     print(f"Total de productos críticos: {productos_criticos}")
     print(f"Total a reponer: {total_reponer}")
-    pausa()
-    
-def productos_criticos():
-    limpiar()
-    print("=" * 70)
-    print("PRODUCTOS CRÍTICOS".center(70))
-    print("=" * 70)
-    
-    encontrados = False
-    for producto in inventario:
-        if producto[3] < producto[4]:
-            encontrados = True
-            print("-" * 70)
-            print(f"Código: {producto[0]}")
-            print(f"Producto: {producto[1]}")
-            print(f"Stock actual: {producto[3]}")
-            print(f"Stock mínimo: {producto[4]}")
-            print(f"Cantidad a reponer: {producto[4] - producto[3]}")
-    if not encontrados:
-        print("\nNo hay productos críticos.")
     pausa()
 
 def reporte_reposicion():
@@ -220,11 +187,10 @@ def menu_inventario():
         print("2. Buscar producto")
         print("3. Modificar producto")
         print("4. Auditoría de inventario")
-        print("5. Productos críticos")
-        print("6. Reporte de reposición")
-        print("7. Salir al menú principal")
+        print("5. Reporte de reposición")
+        print("6. Salir al menú principal")
         
-        opcion = validar_entero("\nSeleccione una opción (1-7): ")
+        opcion = validar_entero("\nSeleccione una opción (1-6): ")
 
         if opcion == 1:
             registrar_producto()
@@ -235,10 +201,8 @@ def menu_inventario():
         elif opcion == 4:
             auditar_inventario()
         elif opcion == 5:
-            productos_criticos()
-        elif opcion == 6:
             reporte_reposicion()
-        elif opcion == 7:
+        elif opcion == 6:
             print("\nGracias por usar el sistema de inventario.")
             break
         else:
