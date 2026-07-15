@@ -121,59 +121,52 @@ def modificar_producto():
     
 def auditar_inventario():
     limpiar()
-    print("=" * 70)
-    print("AUDITORÍA DE INVENTARIO".center(70))
-    print("=" * 70)
+    print("=" * 85)
+    print("AUDITORÍA DE CONTROL Y PREVENCIÓN DE INVENTARIO".center(85))
+    print("=" * 85)
 
     if len(inventario) == 0:
-        print("No hay productos registrados.")
+        print("No hay productos registrados para auditar.")
         pausa()
         return
+
     total_reponer = 0
     productos_criticos = 0
+    productos_alerta = 0
 
-    print("{:<10}{:<20}{:>10}{:>10}{:>12}{:>15}".format("Código", "Producto", "Stock", "Mínimo", "Comprar", "Estado"))
-    print("-" * 80)
+    print("{:<10}{:<22}{:>10}{:>10}{:>12}{:>15}".format("Código", "Producto", "Stock", "Mínimo", "Comprar", "Estado"))
+    print("-" * 85)
+    
     for producto in inventario:
-        comprar = producto[4] - producto[3] if producto[3] < producto[4] else 0
-        estado = "CRÍTICO" if producto[3] < producto[4] else "OK"
-        if estado == "CRÍTICO":
+        stock_actual = producto[3]
+        stock_minimo = producto[4]
+        
+        limite_preventivo = stock_minimo * 1.20
+
+        if stock_actual < stock_minimo:
+            estado = "CRÍTICO"
             productos_criticos += 1
-            total_reponer += comprar
-        print("{:<10}{:<20}{:>10}{:>10}{:>12}{:>15}".format(producto[0], producto[1], producto[3], producto[4], comprar, estado))
+            comprar = (stock_minimo * 2) - stock_actual
+        elif stock_actual == stock_minimo or stock_actual <= limite_preventivo:
+            estado = "ALERTA"
+            productos_alerta += 1
+            comprar = (stock_minimo * 2) - stock_actual
+        else:
+            estado = "CONFORME"
+            comprar = 0
+            
+        total_reponer += comprar
+            
+        print("{:<10}{:<22}{:>10}{:>10}{:>12}{:>15}".format(
+            producto[0], producto[1], stock_actual, stock_minimo, comprar, estado
+        ))
    
-    print("-" * 80)
-    print(f"Total de productos críticos: {productos_criticos}")
-    print(f"Total a reponer: {total_reponer}")
-    pausa()
-
-def reporte_reposicion():
-    limpiar()
-    print("=" * 70)
-    print("REPORTE DE REPOSICIÓN".center(70))
-    print("=" * 70)
-
-    if len(inventario) == 0:
-        print("\nNo hay productos registrados.")
-        pausa()
-        return
-
-    total_reponer = 0
-    existe = False
-
-    print("{:<10}{:<20}{:>10}{:>10}{:>12}".format("Código", "Producto", "Stock", "Mínimo", "Comprar"))
-    print("-" * 70)
-    for producto in inventario:
-        if producto[3] < producto[4]:
-            existe = True
-            comprar = producto[4] - producto[3]
-            total_reponer += comprar
-            print("{:<10}{:<20}{:>10}{:>10}{:>12}".format(producto[0], producto[1], producto[3], producto[4], comprar))
-    print("-" * 70)
-    if existe:
-        print(f"\nTotal a reponer: {total_reponer}")
-    else:
-        print("\nNo hay productos que requieran reposición.")
+    print("-" * 85)
+    print(f"RESUMEN OPERATIVO DE ALMACÉN:")
+    print(f" - Productos en desabastecimiento (CRÍTICO) : {productos_criticos} ítem(s).")
+    print(f" - En riesgo de desabastecerse (ALERTA)     : {productos_alerta} ítem(s).")
+    print(f" - Total de unidades a pedir al proveedor   : {total_reponer} und.")
+    print("=" * 85)
     pausa()
     
 def menu_inventario():
@@ -186,11 +179,10 @@ def menu_inventario():
         print("1. Registrar producto")
         print("2. Buscar producto")
         print("3. Modificar producto")
-        print("4. Auditoría de inventario")
-        print("5. Reporte de reposición")
-        print("6. Salir al menú principal")
+        print("4. Auditoría Logística y Prevención")
+        print("5. Salir al menú principal")
         
-        opcion = validar_entero("\nSeleccione una opción (1-6): ")
+        opcion = validar_entero("\nSeleccione una opción (1-5): ")
 
         if opcion == 1:
             registrar_producto()
@@ -201,8 +193,6 @@ def menu_inventario():
         elif opcion == 4:
             auditar_inventario()
         elif opcion == 5:
-            reporte_reposicion()
-        elif opcion == 6:
             print("\nGracias por usar el sistema de inventario.")
             break
         else:
