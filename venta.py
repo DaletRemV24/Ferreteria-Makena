@@ -31,7 +31,7 @@ def validar_real(mensaje):
 def limpiar():
     print("\n" * 30)
 def pausa():
-    input("\nPresione ENTER para continuar...")
+    input("\nPresione ENTER para volver al menú...")
 
 def buscar_boleta(boleta):
     for i in range(len(ventas)):
@@ -92,38 +92,6 @@ def registrar_venta():
     print("=" * 70)
     print()
     print("Venta registrada correctamente.")
-
-    pausa()
-
-def buscar_venta():
-    titulo("BUSCAR VENTA")
-    if len(ventas) == 0:
-        print("No existen ventas registradas.")
-        pausa()
-        return
-
-    boleta = validar_texto("Ingrese el código de la boleta: ").upper()
-    posicion = buscar_boleta(boleta)
-
-    if posicion == -1:
-        print("\nLa boleta no existe.")
-        pausa()
-        return
-
-    print()
-    print("=" * 75)
-    print("BOLETA :", ventas[posicion][0])
-    print("CLIENTE:", ventas[posicion][1])
-    print("=" * 75)
-    print("{:<25}{:>10}{:>12}{:>15}".format("Producto","Cant.","Precio","Subtotal"))
-
-    print("-" * 75)
-    for detalle in detalleVentas:
-        if detalle[0] == boleta:
-            print("{:<25}{:>10}{:>12.2f}{:>15.2f}".format(detalle[1],detalle[2],detalle[3],detalle[4]))
-    print("-" * 75)
-    print("{:>60} S/{:.2f}".format("TOTAL:",ventas[posicion][2]))
-    print("=" * 75)
 
     pausa()
 
@@ -300,31 +268,28 @@ def menu():
         print("=" * 60)
 
         print("1. Registrar venta")
-        print("2. Buscar venta")
+        print("2. Mostrar ventas")
         print("3. Modificar venta")
         print("4. Eliminar venta")
-        print("5. Mostrar ventas")
-        print("6. Reporte general")
-        print("7. Indicadores")
-        print("8. Salir")
+        print("5. Reporte general")
+        print("6. Indicadores")
+        print("7. Salir")
 
         print("=" * 60)
         opcion = validar_entero("Seleccione una opción: ")
         if opcion == 1:
             registrar_venta()
         elif opcion == 2:
-            buscar_venta()
+            mostrar_ventas()
         elif opcion == 3:
             modificar_venta()
         elif opcion == 4:
             eliminar_venta()
         elif opcion == 5:
-            mostrar_ventas()
-        elif opcion == 6:
             reporte_general()
-        elif opcion == 7:
+        elif opcion == 6:
             indicadores()
-        elif opcion == 8:
+        elif opcion == 7:
             print("\nGracias por utilizar el Sistema de Ventas.")
             break
         else:
