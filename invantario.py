@@ -1,168 +1,251 @@
 # ============================================================
 #  FERRETERÍA MACKLENA S.A.
 #  Módulo: Sistema de Auditoría y Control de Inventario
-#  Integrante: Remigio Valentín, Dalet
-#  Curso: Fundamentos de Programación 1 — 1FIS0274
+#  Curso: Fundamentos de Programación 1
 #  Ciclo: 2026-15 | TB2
 #  US cubiertos: US-08, US-09, US-10, US-11, US-12, US-13, US-14
 # ============================================================
 
-def mostrar_encabezado():
-    print("=" * 62)
-    print("     FERRETERÍA MACKLENA S.A.")
-    print("     Sistema de Auditoría y Control de Inventario")
-    print("=" * 62)
+inventario = []
 
-def ingresar_entero_positivo(mensaje):
-    """Solicita un número entero mayor a cero con validación de bucle."""
+def buscar_codigo(codigo):
+    for i in range(len(inventario)):
+        if inventario[i][0] == codigo:
+            return i
+    return -1
+def validar_texto(mensaje):
     while True:
-        entrada = input(mensaje).strip()
-        if entrada.isdigit() and int(entrada) > 0:
-            return int(entrada)
-        print("  ⚠ Ingrese un número entero mayor a cero.\n")
+        dato = input(mensaje).strip()
+        if dato != "":
+            return dato
+        print("ERROR. Debe ingresar un texto válido.")
 
-def ingresar_stock(mensaje):
-    """
-    Solicita un valor de stock (entero >= 0).
-    US-10: rechaza valores negativos.
-    US-11: valida que sea un número lógico.
-    """
+def validar_entero(mensaje):
     while True:
         try:
-            valor = int(input(mensaje).strip())
-            if valor >= 0:
-                return valor
-            # US-10 / US-11: valores negativos son filtrados
-            print("  ⚠ El stock no puede ser negativo. Intente nuevamente.\n")
+            numero = int(input(mensaje))
+            if numero > 0:
+                return numero
+            print("ERROR. Debe ingresar un número mayor que cero.")
         except ValueError:
-            print("  ⚠ Valor inválido. Ingrese un número entero (ej: 15).\n")
+            print("ERROR. Debe ingresar un número entero.")
 
-def ingresar_codigo(mensaje):
-    """US-09: solicita código alfanumérico no vacío."""
-    while True:
-        codigo = input(mensaje).strip().upper()
-        if codigo:
-            return codigo
-        print("  ⚠ El código no puede estar vacío.\n")
-
-def auditar_producto(numero):
-    """
-    Captura los datos de un producto y evalúa su estado de stock.
-    Retorna dict con resultado del análisis.
-    """
-    print(f"\n  {'─'*58}")
-    print(f"  PRODUCTO {numero}")
-    print(f"  {'─'*58}")
-
-    # US-09: código alfanumérico del artículo
-    codigo = ingresar_codigo("  Código del producto (ej: FER-042): ")
+def limpiar():
+    print("\n" * 30)
+    
+def pausa():
+    input("\nPresione ENTER para continuar...")
+    
+def registrar_producto():
+    limpiar()
+    print("=" * 60)
+    print("REGISTRAR PRODUCTO".center(60))
+    print("=" * 60)
 
     while True:
-        nombre = input("  Nombre del producto             : ").strip()
-        if nombre:
+        codigo = validar_texto("Código del producto (Ej. P001): ").upper()
+        if buscar_codigo(codigo) == -1:
             break
-        print("  ⚠ El nombre no puede estar vacío.\n")
+        print("ERROR. El código ya existe.")
 
-    # US-10 / US-11: validación de stock actual y mínimo
-    stock_actual  = ingresar_stock("  Stock actual en almacén (unid.) : ")
-    stock_minimo  = ingresar_stock("  Stock mínimo de seguridad       : ")
+    nombre = validar_texto("Nombre del producto: ")
+    categoria = validar_texto("Categoría del producto: ")
+    stock = validar_entero("Stock actual: ")
+    minimo = validar_entero("Stock mínimo: ")
 
-    # US-12: comparación automática de existencias vs límite mínimo
-    en_alerta = stock_actual < stock_minimo
+    inventario.append([codigo, nombre, categoria, stock, minimo])
+    print("\nProducto registrado exitosamente.")
+    pausa()
 
-    unidades_a_pedir = 0
-    if en_alerta:
-        # US-13: cálculo matemático de unidades faltantes
-        unidades_a_pedir = stock_minimo - stock_actual
-        print(f"\n  ⚠ ALERTA — Stock crítico detectado.")
-        print(f"     Stock actual  : {stock_actual} unid.")
-        print(f"     Stock mínimo  : {stock_minimo} unid.")
-        print(f"     A reponer     : {unidades_a_pedir} unid.")
+def buscar_producto():
+    limpiar()
+    print("=" * 60)
+    print("BUSCAR PRODUCTO".center(60))
+    print("=" * 60)
+    
+    if len(inventario) == 0:
+        print("No hay productos registrados.")
+        pausa()
+        return
+
+    codigo = validar_texto("Ingrese el código: ").upper()
+    indice = buscar_codigo(codigo)
+
+    if indice != -1:
+        producto = inventario[indice]
+        print("\nProducto encontrado:")
+        print(f"Código: {producto[0]}")
+        print(f"Nombre: {producto[1]}")
+        print(f"Categoría: {producto[2]}")
+        print(f"Stock actual: {producto[3]}")
+        print(f"Stock mínimo: {producto[4]}")
     else:
-        print(f"\n  ✔ Stock óptimo ({stock_actual} unid. / mín. {stock_minimo} unid.)")
+        print("\nProducto no encontrado.")
+    
+    pausa()
 
-    return {
-        "numero"          : numero,
-        "codigo"          : codigo,
-        "nombre"          : nombre,
-        "stock_actual"    : stock_actual,
-        "stock_minimo"    : stock_minimo,
-        "en_alerta"       : en_alerta,
-        "unidades_pedir"  : unidades_a_pedir
-    }
+def modificar_producto():
+    limpiar()
+    print("=" * 60)
+    print("MODIFICAR PRODUCTO".center(60))
+    print("=" * 60)
+    
+    if len(inventario) == 0:
+        print("No hay productos registrados.")
+        pausa()
+        return
 
-def generar_reporte(productos, total_alertas, total_unidades):
-    """
-    US-14: Visualiza reporte detallado de artículos en crisis
-    con cantidad exacta sugerida por proveedor.
-    """
-    print("\n")
-    print("=" * 62)
-    print("     REPORTE DE AUDITORÍA DE INVENTARIO")
-    print("     Ferretería Macklena S.A.")
-    print("=" * 62)
-    print(f"  Total de productos evaluados : {len(productos)}")
-    print(f"  Total de alertas de stock    : {total_alertas}")
-    # US-13: total acumulado de unidades a pedir
-    print(f"  Total unidades a reabastecer : {total_unidades} unid.")
-    print()
+    codigo = validar_texto("Ingrese el código del producto a modificar: ").upper()
+    indice = buscar_codigo(codigo)
 
-    if total_alertas == 0:
-        print("  ✔ Todos los productos tienen stock suficiente.")
+    if indice != -1:
+        producto = inventario[indice]
+        print("\nProducto encontrado:")
+        print(f"Código: {producto[0]}")
+        print(f"Nombre: {producto[1]}")
+        print(f"Categoría: {producto[2]}")
+        print(f"Stock actual: {producto[3]}")
+        print(f"Stock mínimo: {producto[4]}")
+
+        nombre = validar_texto("Nuevo nombre del producto: ")
+        categoria = validar_texto("Nueva categoría del producto: ")
+        stock = validar_entero("Nuevo stock actual: ")
+        minimo = validar_entero("Nuevo stock mínimo: ")
+
+        inventario[indice] = [codigo, nombre, categoria, stock, minimo]
+        print("\nProducto modificado exitosamente.")
     else:
-        # US-14: lista detallada de artículos en crisis
-        print(f"  {'─'*58}")
-        print("  LISTA DE COMPRAS URGENTES — Artículos desabastecidos")
-        print(f"  {'─'*58}")
-        print(f"  {'N°':<5} {'Código':<12} {'Producto':<22} "
-              f"{'Act':>5} {'Mín':>5} {'Pedir':>7}")
-        print(f"  {'─'*5} {'─'*12} {'─'*22} {'─'*5} {'─'*5} {'─'*7}")
+        print("\nProducto no encontrado.")
+    
+    pausa()
+    
+def auditar_inventario():
+    limpiar()
+    print("=" * 70)
+    print("AUDITORÍA DE INVENTARIO".center(70))
+    print("=" * 70)
 
-        # US-14: recorre solo productos en alerta (bucle for sobre la lista)
-        contador = 1
-        for p in productos:
-            if p["en_alerta"]:
-                print(f"  {contador:<5} {p['codigo']:<12} {p['nombre']:<22} "
-                      f"{p['stock_actual']:>5} {p['stock_minimo']:>5} "
-                      f"{p['unidades_pedir']:>6} u.")
-                contador += 1
+    if len(inventario) == 0:
+        print("No hay productos registrados.")
+        pausa()
+        return
+    total_reponer = 0
+    productos_criticos = 0
 
-        print(f"  {'─'*58}")
-        print(f"\n  → Orden de reabastecimiento lista para envío al proveedor.")
+    print("{:<10}{:<20}{:>10}{:>10}{:>12}{:>15}".format("Código", "Producto", "Stock", "Mínimo", "Comprar", "Estado"))
+    print("-" * 80)
+    for producto in inventario:
+        codigo = producto[0]
+        nombre = producto[1]
+        stock = producto[3]
+        minimo = producto[4]
+        if stock < 0:
+            estado = "ERROR"
+            comprar = 0
+        elif minimo <= 0:
+            estado = "INVÁLIDO"
+            comprar = 0
+        elif stock < minimo:
+            estado = "CRÍTICO"
+            comprar = minimo - stock
+            total_reponer += comprar
+            productos_criticos += 1
+        else:
+            estado = "OK"
+            comprar = 0
+        print("{:<10}{:<20}{:>10}{:>10}{:>12}{:>15}".format(codigo, nombre, stock, minimo, comprar, estado))
+        
+    print("-" * 80)
+    print(f"Total de productos críticos: {productos_criticos}")
+    print(f"Total a reponer: {total_reponer}")
+    pausa()
+    
+def productos_criticos():
+    limpiar()
+    print("=" * 70)
+    print("PRODUCTOS CRÍTICOS".center(70))
+    print("=" * 70)
+    
+    encontrados = False
+    for producto in inventario:
+        if producto[3] < producto[4]:
+            encontrados = True
+            print("-" * 70)
+            print(f"Código: {producto[0]}")
+            print(f"Producto: {producto[1]}")
+            print(f"Stock actual: {producto[3]}")
+            print(f"Stock mínimo: {producto[4]}")
+            print(f"Cantidad a reponer: {producto[4] - producto[3]}")
+    if not encontrados:
+        print("\nNo hay productos críticos.")
+    pausa()
 
-    print("=" * 62)
-    print("  Auditoría finalizada correctamente.")
-    print("=" * 62)
+def reporte_reposicion():
+    limpiar()
+    print("=" * 70)
+    print("REPORTE DE REPOSICIÓN".center(70))
+    print("=" * 70)
 
-def main():
-    mostrar_encabezado()
-    print("\nBienvenido al sistema de auditoría de inventario.\n")
+    if len(inventario) == 0:
+        print("\nNo hay productos registrados.")
+        pausa()
+        return
 
-    # US-08: el encargado define cuántos productos va a revisar en el ciclo
-    n_productos = ingresar_entero_positivo(
-        "Ingrese la cantidad total de productos a evaluar: "
-    )
+    total_reponer = 0
+    existe = False
 
-    productos       = []    # US-08: lista de productos evaluados
-    total_alertas   = 0     # contador de alertas detectadas
-    total_unidades  = 0     # US-13: acumulador de unidades a pedir
+    print("{:<10}{:<20}{:>10}{:>10}{:>12}".format("Código", "Producto", "Stock", "Mínimo", "Comprar"))
+    print("-" * 70)
+    for producto in inventario:
+        if producto[3] < producto[4]:
+            existe = True
+            comprar = producto[4] - producto[3]
+            total_reponer += comprar
+            print("{:<10}{:<20}{:>10}{:>10}{:>12}".format(producto[0], producto[1], producto[3], producto[4], comprar))
+    print("-" * 70)
+    if existe:
+        print(f"\nTotal a reponer: {total_reponer}")
+    else:
+        print("\nNo hay productos que requieran reposición.")
+    pausa()
+    
+def menu_inventario():
+    while True:
+        limpiar()
+        print("=" * 60)
+        print("FERRERÍA MAKENA".center(60))
+        print("MENÚ DE INVENTARIO".center(60))
+        print("=" * 60)
+        print("1. Registrar producto")
+        print("2. Buscar producto")
+        print("3. Modificar producto")
+        print("4. Auditoría de inventario")
+        print("5. Productos críticos")
+        print("6. Reporte de reposición")
+        print("7. Salir al menú principal")
+        
+        opcion = validar_entero("\nSeleccione una opción (1-7): ")
 
-    # US-08: bucle while — revisa cada producto secuencialmente
-    i = 1
-    while i <= n_productos:
-        resultado = auditar_producto(i)
-        productos.append(resultado)
+        if opcion == 1:
+            registrar_producto()
+        elif opcion == 2:
+            buscar_producto()
+        elif opcion == 3:
+            modificar_producto()
+        elif opcion == 4:
+            auditar_inventario()
+        elif opcion == 5:
+            productos_criticos()
+        elif opcion == 6:
+            reporte_reposicion()
+        elif opcion == 7:
+            print("\nGracias por usar el sistema de inventario.")
+            break
+        else:
+            print("ERROR. Opción inválida.")
+            pausa()
 
-        # US-12: acumula alertas detectadas
-        if resultado["en_alerta"]:
-            total_alertas  += 1
-            # US-13: acumula unidades totales a reponer
-            total_unidades += resultado["unidades_pedir"]
-
-        i += 1
-
-    # US-14: genera el reporte final con todos los artículos en crisis
-    generar_reporte(productos, total_alertas, total_unidades)
-
-if __name__ == "__main__":
-    main()
+menu_inventario()
+        
+        
+    
